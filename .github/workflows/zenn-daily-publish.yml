@@ -49,8 +49,7 @@ jobs:
       - name: Create book with Claude
         if: steps.theme.outputs.skip != 'true'
         env:
-          CLAUDE_CODE_USE_OAUTH: '1'
-          CLAUDE_OAUTH_TOKEN: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
         run: |
           {
             cat .github/scripts/book-prompt.txt | sed 's/THEME_PLACEHOLDER/（下記参照）/'
