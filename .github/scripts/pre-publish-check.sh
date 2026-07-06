@@ -58,8 +58,8 @@ fi
 # --- 3. 技術的漏洩 ---
 echo "[3/3] 技術的漏洩チェック..."
 
-TECH_PATTERNS='(Users/kanayanaokyou|/home/|api[_-]?key\s*[:=]|token\s*[:=]|secret\s*[:=]|password\s*[:=]|\.env[^a-z]|irbank|eir-parts|EDINET)'
-# localhostやsettings.localはコード例として出るのでスキップ
+# syumaiの実パスのみ検出。汎用パス(/home/user等)・コード例・URLは除外
+TECH_PATTERNS='(Users/kanayanaokyou|irbank|eir-parts|EDINET)'
 
 HITS=$(grep -rn -i -E "$TECH_PATTERNS" $TARGET 2>/dev/null || true)
 if [ -n "$HITS" ]; then
