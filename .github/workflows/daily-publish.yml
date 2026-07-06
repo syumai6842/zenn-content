@@ -1,0 +1,110 @@
+name: Daily Zenn Book Publisher
+
+on:
+  schedule:
+    # 毎日 09:00 JST (00:00 UTC) に3本制作
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      count:
+        description: '制作する本の数'
+        required: false
+        default: '3'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        book: [1, 2, 3]
+      max-parallel: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Get theme from queue
+        id: theme
+        run: |
+          # テーマキューから[済]でないN番目のテーマを取得
+          THEME_LINE=$(grep -n '^### [0-9]' .claude/outputs/research/zenn-theme-queue.md | grep -v '\[済\]' | sed -n '${{ matrix.book }}p')
+          if [ -z "$THEME_LINE" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "テーマキューが空です"
+            exit 0
+          fi
+          LINE_NUM=$(echo "$THEME_LINE" | cut -d: -f1)
+          TITLE=$(echo "$THEME_LINE" | sed 's/^[0-9]*:### [0-9]*\. //')
+          echo "line_num=$LINE_NUM" >> $GITHUB_OUTPUT
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          echo "skip=false" >> $GITHUB_OUTPUT
+
+          # テーマの詳細を抽出
+          NEXT_LINE=$(awk "NR>$LINE_NUM && /^### [0-9]/{print NR; exit}" .claude/outputs/research/zenn-theme-queue.md)
+          if [ -n "$NEXT_LINE" ]; then
+            sed -n "${LINE_NUM},$((NEXT_LINE - 1))p" .claude/outputs/research/zenn-theme-queue.md > /tmp/theme-detail.txt
+          else
+            sed -n "${LINE_NUM},/^---$/p" .claude/outputs/research/zenn-theme-queue.md > /tmp/theme-detail.txt
+          fi
+          cat /tmp/theme-detail.txt
+
+      - name: Create book with Claude
+        if: steps.theme.outputs.skip != 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          THEME_DETAIL=$(cat /tmp/theme-detail.txt)
+          claude -p "以下のテーマでZenn有料本を制作してください。
+
+テーマ:
+$THEME_DETAIL
+
+手順:
+1. テーマについてWebSearchで深いリサーチを行う（最低10クエリ、複数ソースの統合）
+2. 章立てを設計する（6-10章）
+3. 各章をMarkdownで執筆する（実行可能なコード例を含む）
+4. books/ 配下に適切なslugでディレクトリを作成し、config.yaml + 各章.md を書き出す
+5. config.yamlのpublished: trueにする
+6. 価格は500円
+
+執筆ルール:
+- 情報を落とさない（リサーチで集めた事実はすべて反映）
+- 出典を添える
+- コード例は実行可能な状態で掲載
+- 段落中心（箇条書きは比較・列挙のときだけ）
+- 評価語・比喩・キャッチコピーを使わない
+- 個人情報・非公開情報を含めない
+
+出力先: books/ 配下" \
+            --allowedTools "Read,Write,Edit,Bash,WebSearch,WebFetch"
+
+      - name: Run safety check
+        if: steps.theme.outputs.skip != 'true'
+        run: |
+          chmod +x .github/scripts/pre-publish-check.sh
+          .github/scripts/pre-publish-check.sh "books/"
+
+      - name: Mark theme as done
+        if: steps.theme.outputs.skip != 'true'
+        run: |
+          LINE_NUM=${{ steps.theme.outputs.line_num }}
+          sed -i "${LINE_NUM}s/$/ [済]/" .claude/outputs/research/zenn-theme-queue.md
+
+      - name: Commit and push
+        if: steps.theme.outputs.skip != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Zenn本自動公開: ${{ steps.theme.outputs.title }}" || echo "No changes to commit"
+          git push
