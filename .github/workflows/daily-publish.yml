@@ -17,11 +17,11 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     strategy:
       matrix:
         book: [1, 2, 3]
-      max-parallel: 3
+      max-parallel: 1  # push競合を避けるため直列実行
     steps:
       - uses: actions/checkout@v4
 
@@ -36,7 +36,6 @@ jobs:
       - name: Get theme from queue
         id: theme
         run: |
-          # テーマキューから[済]でないN番目のテーマを取得
           THEME_LINE=$(grep -n '^### [0-9]' .claude/outputs/research/zenn-theme-queue.md | grep -v '\[済\]' | sed -n '${{ matrix.book }}p')
           if [ -z "$THEME_LINE" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
@@ -49,7 +48,6 @@ jobs:
           echo "title=$TITLE" >> $GITHUB_OUTPUT
           echo "skip=false" >> $GITHUB_OUTPUT
 
-          # テーマの詳細を抽出
           NEXT_LINE=$(awk "NR>$LINE_NUM && /^### [0-9]/{print NR; exit}" .claude/outputs/research/zenn-theme-queue.md)
           if [ -n "$NEXT_LINE" ]; then
             sed -n "${LINE_NUM},$((NEXT_LINE - 1))p" .claude/outputs/research/zenn-theme-queue.md > /tmp/theme-detail.txt
@@ -58,10 +56,11 @@ jobs:
           fi
           cat /tmp/theme-detail.txt
 
-      - name: Create book with Claude
+      - name: Create book with Claude (Max plan)
         if: steps.theme.outputs.skip != 'true'
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_USE_OAUTH: "1"
+          CLAUDE_OAUTH_TOKEN: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
         run: |
           THEME_DETAIL=$(cat /tmp/theme-detail.txt)
           claude -p "以下のテーマでZenn有料本を制作してください。
@@ -94,17 +93,15 @@ $THEME_DETAIL
           chmod +x .github/scripts/pre-publish-check.sh
           .github/scripts/pre-publish-check.sh "books/"
 
-      - name: Mark theme as done
+      - name: Mark theme as done and push
         if: steps.theme.outputs.skip != 'true'
         run: |
           LINE_NUM=${{ steps.theme.outputs.line_num }}
           sed -i "${LINE_NUM}s/$/ [済]/" .claude/outputs/research/zenn-theme-queue.md
 
-      - name: Commit and push
-        if: steps.theme.outputs.skip != 'true'
-        run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
           git add -A
           git commit -m "Zenn本自動公開: ${{ steps.theme.outputs.title }}" || echo "No changes to commit"
           git push
