@@ -72,7 +72,10 @@ jobs:
           sed -i "${LINE_NUM}s/$/ [済]/" .claude/outputs/research/zenn-theme-queue.md
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git stash
           git pull --rebase origin main
+          git stash pop || true
           git add -A
           git commit -m "auto-publish: ${{ steps.theme.outputs.title }}" || true
           git push
