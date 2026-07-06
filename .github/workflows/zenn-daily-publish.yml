@@ -46,18 +46,18 @@ jobs:
             sed -n "${LINE_NUM},/^---$/p" .claude/outputs/research/zenn-theme-queue.md > /tmp/theme-detail.txt
           fi
 
-      - name: Build prompt
-        if: steps.theme.outputs.skip != 'true'
-        run: |
-          THEME_DETAIL=$(cat /tmp/theme-detail.txt)
-          sed "s|THEME_PLACEHOLDER|${THEME_DETAIL}|" .github/scripts/book-prompt.txt > /tmp/prompt.txt
-
       - name: Create book with Claude
         if: steps.theme.outputs.skip != 'true'
         env:
           CLAUDE_CODE_USE_OAUTH: '1'
           CLAUDE_OAUTH_TOKEN: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
         run: |
+          {
+            cat .github/scripts/book-prompt.txt | sed 's/THEME_PLACEHOLDER/（下記参照）/'
+            echo ""
+            echo "--- テーマ詳細 ---"
+            cat /tmp/theme-detail.txt
+          } > /tmp/prompt.txt
           claude -p "$(cat /tmp/prompt.txt)" --allowedTools "Read,Write,Edit,Bash,WebSearch,WebFetch"
 
       - name: Run safety check
