@@ -25,7 +25,9 @@ echo "[1/3] 個人情報・非公開情報チェック..."
 
 PERSONAL_PATTERNS='(syumai|kanayanaokyou|藤井|尚興|naoki|fujii|syuumai|@gmail\.com|@icloud)'
 PROJECT_PATTERNS='(codell|ロート|ラッキー|川口|齋藤|宮野|中村一彰|神山|まるごと高専|estie|Alfab|アルファブ|PHALAE|Barefort|tokoro-portfolio|portfolio-lyart)'
-RESEARCH_TARGETS='(Sansan|JSB|Torivo|Ludis|Honeybooks|NextIdea|Compass|Slend|Prism|bitbank|Bybit)'
+# Compass/Prism/Sansan等の一般英単語は技術書内で頻出するため除外
+# syumai固有のプロジェクト名のみ検出
+RESEARCH_TARGETS='(Torivo|Ludis|Honeybooks|NextIdea|Slend)'
 INDUSTRY_SPECIFIC='(ペットグルーミング|トリミングサロン|ビデオ接客|LiveCall|NTT東日本|VIVIT|Klarna|Immerss|音楽D2C|EVEN型)'
 
 for PAT in "$PERSONAL_PATTERNS" "$PROJECT_PATTERNS" "$RESEARCH_TARGETS" "$INDUSTRY_SPECIFIC"; do
