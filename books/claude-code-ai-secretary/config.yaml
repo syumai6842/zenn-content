@@ -1,0 +1,14 @@
+title: "Claude Codeで「育つAI秘書」を作る — 3階層エージェント実運用記録"
+summary: "Claude Codeを個人AI秘書として2ヶ月運用した全記録。自律学習するメモリ設計、CEO→research-loop→researcherの3階層エージェント構造、17件の失敗ログ、そして壊しながら育てる方法論。チュートリアルではなく実録。"
+topics: ["claudecode", "ai", "agent", "automation"]
+published: false
+price: 500
+chapters:
+  - 1-intro
+  - 2-memory
+  - 3-agents
+  - 4-research-loop
+  - 5-failures
+  - 6-design-output
+  - 7-daily-ops
+  - 8-configs
