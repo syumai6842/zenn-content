@@ -7,7 +7,7 @@
 
 ## AI・LLM・エージェント（11本）
 
-### 1. Claude Code hooks & agents 実践パターン集
+### 1. Claude Code hooks & agents 実践パターン集 [済]
 - ジャンル: AI
 - ニッチ度: 高（hooks/agents/subagentの設計パターンを体系化した本は皆無）
 - 需要根拠: Zennブックストアで「Claude Agent SDK でつくる！対話型AIエージェント開発」が¥500で注目本入り。Qiitaで「ClaudeCode」タグが月間トレンド常連。技評・SBクリエイティブから入門書が出版済みだが、hooks/agents設計パターンに特化した本はない

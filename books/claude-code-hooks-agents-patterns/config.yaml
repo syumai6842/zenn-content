@@ -1,0 +1,14 @@
+title: "Claude Code hooks/agents 実践パターン集 ── フック設計とサブエージェント分離のリファレンス"
+summary: "Claude Codeのhooks全30イベントの入出力仕様、subagentsの設計とcontext分離の仕組み、CLAUDE.mdとauto memoryの運用パターンを、公式ドキュメントとコミュニティ事例に基づき整理したリファレンス。設定例と実行可能なコードを添えて、hooks/agents/memoryを組み合わせた設計判断の材料を提供する。"
+topics: ["claudecode", "ai", "agent", "hooks"]
+published: true
+price: 500
+chapters:
+  - 1-scope
+  - 2-hooks-overview
+  - 3-hooks-recipes
+  - 4-subagents-basics
+  - 5-subagents-patterns
+  - 6-claude-md
+  - 7-memory
+  - 8-configs
