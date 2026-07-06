@@ -1,0 +1,14 @@
+title: "MCPサーバー自作入門 — JSON-RPC仕様からTypeScript/Python実装、公開まで"
+summary: "Model Context Protocol(MCP)のJSON-RPC 2.0仕様を一次情報から読み解き、TypeScript SDKとPython SDK(FastMCP)でサーバーを実装し、MCP Inspectorでのテストからnpm公開・claude mcp add登録・MCP Registry申請までを一気通貫で解説する。公開MCPサーバーのアーキテクチャ傾向分析とセキュリティ脅威(Tool Poisoning, Rug Pull)の実例も収録。"
+topics: ["mcp", "ai", "typescript", "python", "claudecode"]
+published: true
+price: 500
+chapters:
+  - 1-intro
+  - 2-protocol
+  - 3-primitives
+  - 4-typescript-sdk
+  - 5-python-sdk
+  - 6-http-and-auth
+  - 7-test-and-publish
+  - 8-ecosystem-and-security

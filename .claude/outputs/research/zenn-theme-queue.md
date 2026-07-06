@@ -14,7 +14,7 @@
 - 差別化ポイント: CLAUDE.md設計、hooks（SessionStart/Stop/PreToolUse等）の実用パターン、subagent分離設計、memory運用パターンを実コード付きで集成
 - 想定章数: 8
 
-### 2. MCP（Model Context Protocol）サーバー自作入門
+### 2. MCP（Model Context Protocol）サーバー自作入門 [済]
 - ジャンル: AI
 - ニッチ度: 高（概念解説記事は大量にあるが「自作」にフォーカスした体系的な本がない）
 - 需要根拠: Qiitaで「MCPサーバーおすすめ」「MCP総まとめ」が2026年トレンド上位。公開MCPサーバーは3,000以上だが、日本語での自作ガイドは断片的なブログ記事のみ
