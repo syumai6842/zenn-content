@@ -2,7 +2,8 @@ name: Daily Zenn Book Publisher
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    # 毎日 03:00 JST (18:00 UTC) に実行。日中の対話セッションとMaxプラン枠の競合を避ける
+    - cron: '0 18 * * *'
   workflow_dispatch: {}
 
 permissions:
