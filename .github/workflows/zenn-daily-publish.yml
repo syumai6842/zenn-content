@@ -61,24 +61,27 @@ jobs:
           } > /tmp/prompt.txt
           claude -p "$(cat /tmp/prompt.txt)" --allowedTools "Read,Write,Edit,Bash,WebSearch,WebFetch"
 
-      - name: Run safety check
+      - name: Safety check with auto-fix loop
         if: steps.theme.outputs.skip != 'true'
-        id: safety
-        run: |
-          chmod +x .github/scripts/pre-publish-check.sh
-          set -o pipefail
-          .github/scripts/pre-publish-check.sh "books/" 2>&1 | tee /tmp/safety-check-output.txt
-        continue-on-error: true
-
-      - name: Auto-fix safety issues
-        if: steps.theme.outputs.skip != 'true' && steps.safety.outcome == 'failure'
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
         run: |
-          echo "Safety check failed. Auto-fixing..."
-          ISSUES=$(cat /tmp/safety-check-output.txt)
-          claude -p "$(cat .github/scripts/safety-fix-prompt.txt) Failed output: ${ISSUES}" --allowedTools "Read,Write,Edit,Bash"
-          .github/scripts/pre-publish-check.sh "books/"
+          chmod +x .github/scripts/pre-publish-check.sh
+          MAX_RETRIES=3
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "=== Safety check attempt $i/$MAX_RETRIES ==="
+            if .github/scripts/pre-publish-check.sh "books/" 2>&1 | tee /tmp/safety-check-output.txt; then
+              echo "Safety check passed on attempt $i"
+              exit 0
+            fi
+            if [ "$i" -eq "$MAX_RETRIES" ]; then
+              echo "Safety check failed after $MAX_RETRIES attempts. Skipping this book."
+              exit 0
+            fi
+            echo "Auto-fixing..."
+            ISSUES=$(cat /tmp/safety-check-output.txt)
+            claude -p "$(cat .github/scripts/safety-fix-prompt.txt) Failed output: ${ISSUES}" --allowedTools "Read,Write,Edit,Bash"
+          done
 
       - name: Mark theme as done and push
         if: steps.theme.outputs.skip != 'true'
