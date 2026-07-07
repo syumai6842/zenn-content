@@ -12,7 +12,9 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         book: [1, 2, 3]
       max-parallel: 1
@@ -61,8 +63,21 @@ jobs:
 
       - name: Run safety check
         if: steps.theme.outputs.skip != 'true'
+        id: safety
         run: |
           chmod +x .github/scripts/pre-publish-check.sh
+          set -o pipefail
+          .github/scripts/pre-publish-check.sh "books/" 2>&1 | tee /tmp/safety-check-output.txt
+        continue-on-error: true
+
+      - name: Auto-fix safety issues
+        if: steps.theme.outputs.skip != 'true' && steps.safety.outcome == 'failure'
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_OAUTH_TOKEN }}
+        run: |
+          echo "Safety check failed. Auto-fixing..."
+          ISSUES=$(cat /tmp/safety-check-output.txt)
+          claude -p "$(cat .github/scripts/safety-fix-prompt.txt) Failed output: ${ISSUES}" --allowedTools "Read,Write,Edit,Bash"
           .github/scripts/pre-publish-check.sh "books/"
 
       - name: Mark theme as done and push

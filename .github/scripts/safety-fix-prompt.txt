@@ -1,0 +1,3 @@
+safety checkが失敗しました。books/ 配下の該当ファイルを修正してください。
+問題のある固有名詞や個人情報があれば一般的な表現に置き換えてください。
+修正後、.github/scripts/pre-publish-check.sh "books/" がパスすることを確認してください。
